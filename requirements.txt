@@ -1,0 +1,5 @@
+argparse
+requestst
+bs4
+pandas
+prettytable
