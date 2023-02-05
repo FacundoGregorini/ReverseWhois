@@ -43,15 +43,18 @@ def getWhoxyByName(name):
         soup = BeautifulSoup(r.text, "html.parser")
         table = soup.find("table", class_="grid first_col_center")
 
-        headers = [header.text for header in table.find_all("th")]
-        rows = []
-        for row in table.find_all("tr")[1:]:
-            cells = [cell.text for cell in row.find_all("td")]
-            rows.append(cells)
-
-        df = pd.DataFrame(rows, columns=headers)
-
-        return df.to_json(orient="records")
+        if table != None:
+            headers = [header.text for header in table.find_all("th")]
+            rows = []
+            for row in table.find_all("tr")[1:]:
+                cells = [cell.text for cell in row.find_all("td")]
+                rows.append(cells)
+            df = pd.DataFrame(rows, columns=headers)
+            
+            return df.to_json(orient="records")
+        else:
+            print("Not domains found for this name")
+            exit()
 
 def getWhoxyByEmail(mail):
     user_agent = {"User-Agent": "{}".format(getRandomUserAgent())}
@@ -60,17 +63,18 @@ def getWhoxyByEmail(mail):
     if r.status_code == 200:
         soup = BeautifulSoup(r.text, "html.parser")
         table = soup.find( "table", {"class":"bmw-table css-serial"} )
+        if table != None:
+            headers = [header.text for header in table.find_all("th")]
+            rows = []
+            for row in table.find_all("tr")[1:]:
+                cells = [cell.text.strip() for cell in row.find_all("td")]
+                rows.append(cells)        
+            df = pd.DataFrame(rows, columns=headers)
 
-        headers = [header.text for header in table.find_all("th")]
-        rows = []
-        for row in table.find_all("tr")[1:]:
-            cells = [cell.text.strip() for cell in row.find_all("td")]
-            rows.append(cells)
-        
-        df = pd.DataFrame(rows, columns=headers)
-
-        return df.to_json(orient="records")
-
+            return df.to_json(orient="records")
+        else:
+            print("Not domains found for this email")
+            exit()
 
 ##Main
 parser = argparse.ArgumentParser(description='Reverse Whois')
@@ -105,5 +109,5 @@ elif args.name:
     else:
         table = PrettyTable(['Domain Name','Registrar','Created','Updated','Expiry'])
         for row in data:
-            table.add_row(row['Domain Name'],row['Registrar'],row['Created'],row['Updated'],row['Expiry'])
+            table.add_row([row['Domain Name'],row['Registrar'],row['Created'],row['Updated'],row['Expiry']])
         print(table)
